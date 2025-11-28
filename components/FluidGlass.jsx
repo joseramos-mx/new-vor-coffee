@@ -1,80 +1,140 @@
 "use client";
 
-import { useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, MeshTransmissionMaterial, Environment } from '@react-three/drei';
+import * as THREE from 'three';
+import { useRef, useState, useEffect, memo } from 'react';
+import { Canvas, createPortal, useFrame, useThree } from '@react-three/fiber';
+import {
+  useFBO,
+  useGLTF,
+  MeshTransmissionMaterial,
+  Environment
+} from '@react-three/drei';
 import { easing } from 'maath';
 
-export default function FluidGlass({ 
-  lensProps = {} // Recibimos tus configuraciones aquí
-}) {
-  
-  // Valores por defecto si no pasas nada
-  const defaultProps = {
-    scale: 0.5,
-    ior: 1.2,
-    thickness: 3.0,
-    chromaticAberration: 0.04,
-    anisotropy: 0.1,
-    roughness: 0,
-    transmission: 1,
-    color: "#ffffff",
-    ...lensProps // Sobrescribimos con lo que tú mandes
-  };
+export default function FluidGlass({ mode = 'lens', lensProps = {}, barProps = {}, cubeProps = {} }) {
+  const Wrapper = mode === 'bar' ? Bar : mode === 'cube' ? Cube : Lens;
+  const rawOverrides = mode === 'bar' ? barProps : mode === 'cube' ? cubeProps : lensProps;
+
+  const { ...modeProps } = rawOverrides;
 
   return (
     <Canvas
-      eventSource={typeof document !== 'undefined' && document.body}
-      eventPrefix="client"
       camera={{ position: [0, 0, 20], fov: 15 }}
       gl={{ alpha: true }}
+      eventSource={typeof document !== 'undefined' && document.body}
+      eventPrefix="client"
     >
-      <GlassShape config={defaultProps} />
-      {/* El entorno es vital para que el vidrio brille */}
-      <Environment preset="city" /> 
+      {/* Entorno para que el vidrio tenga reflejos y se vea brillante */}
+      <Environment preset="city" />
+      
+      <Wrapper modeProps={modeProps} />
     </Canvas>
   );
 }
 
-function GlassShape({ config }) {
+const ModeWrapper = memo(function ModeWrapper({
+  glb,
+  geometryKey,
+  lockToBottom = false,
+  followPointer = true,
+  modeProps = {},
+  ...props
+}) {
   const ref = useRef();
-  // Cargamos el modelo. Asegúrate de que la ruta sea correcta en tu carpeta public
-  const { nodes } = useGLTF("/assets/3d/lens.glb");
+  const { nodes } = useGLTF(glb);
+  const buffer = useFBO();
+  const { viewport: vp } = useThree();
+  const [scene] = useState(() => new THREE.Scene());
+  const geoWidthRef = useRef(1);
+
+  useEffect(() => {
+    if (nodes && nodes[geometryKey]) {
+      const geo = nodes[geometryKey].geometry;
+      geo.computeBoundingBox();
+      geoWidthRef.current = geo.boundingBox.max.x - geo.boundingBox.min.x || 1;
+    }
+  }, [nodes, geometryKey]);
 
   useFrame((state, delta) => {
-    const { pointer, viewport, camera } = state;
-    
-    // Lógica de seguimiento suave del mouse
+    const { gl, viewport, pointer, camera } = state;
     const v = viewport.getCurrentViewport(camera, [0, 0, 15]);
-    const destX = (pointer.x * v.width) / 2;
-    const destY = (pointer.y * v.height) / 2;
 
+    const destX = followPointer ? (pointer.x * v.width) / 2 : 0;
+    const destY = lockToBottom ? -v.height / 2 + 0.2 : followPointer ? (pointer.y * v.height) / 2 : 0;
+    
+    // Movimiento suave
     easing.damp3(ref.current.position, [destX, destY, 15], 0.15, delta);
-    // Pequeña rotación al mover
-    easing.dampE(ref.current.rotation, [pointer.y * 0.5, pointer.x * 0.5, 0], 0.15, delta);
+    
+    // Rotación suave al mover
+    if (followPointer) {
+        easing.dampE(ref.current.rotation, [pointer.y * 0.5, pointer.x * 0.5, 0], 0.15, delta);
+    }
+
+    if (modeProps.scale == null) {
+      const maxWorld = v.width * 0.9;
+      const desired = maxWorld / geoWidthRef.current;
+      ref.current.scale.setScalar(Math.min(0.15, desired));
+    }
+
+    gl.setRenderTarget(buffer);
+    gl.render(scene, camera);
+    gl.setRenderTarget(null);
+    gl.setClearColor(0x000000, 0);
   });
 
-  return (
-    <mesh
-      ref={ref}
-      // Si el GLB falla, usa geometry={undefined} y pon <sphereGeometry /> dentro
-      geometry={nodes?.Cylinder?.geometry} 
-      rotation-x={Math.PI / 2}
-      scale={config.scale} // Aquí aplicamos tu escala
-    >
-      {/* Si no tienes el GLB, descomenta esto: */}
-      {/* <cylinderGeometry args={[1, 1, 0.5, 32]} /> */}
+  const { scale, ior, thickness, anisotropy, chromaticAberration, ...extraMat } = modeProps;
 
-      <MeshTransmissionMaterial
-        // Pasamos todas las propiedades dinámicamente
-        ior={config.ior}
-        thickness={config.thickness}
-        chromaticAberration={config.chromaticAberration}
-        anisotropy={config.anisotropy}
-        roughness={config.roughness}
-        transmission={config.transmission}
-        color={config.color}
-      />
-    </mesh>
+  return (
+    <>
+      {createPortal(<group />, scene)} {/* Escena vacía para el portal */}
+      
+      {/* Plano invisible necesario para capturar el buffer */}
+      <mesh scale={[vp.width, vp.height, 1]}>
+        <planeGeometry />
+        <meshBasicMaterial map={buffer.texture} transparent opacity={0} />
+      </mesh>
+
+      <mesh ref={ref} scale={scale ?? 0.15} rotation-x={Math.PI / 2} geometry={nodes?.[geometryKey]?.geometry} {...props}>
+        <MeshTransmissionMaterial
+          buffer={buffer.texture}
+          ior={ior ?? 1.15}
+          thickness={thickness ?? 5}
+          anisotropy={anisotropy ?? 0.01}
+          chromaticAberration={chromaticAberration ?? 0.1}
+          {...extraMat}
+        />
+      </mesh>
+    </>
+  );
+});
+
+function Lens({ modeProps, ...p }) {
+  return <ModeWrapper glb="/assets/3d/lens.glb" geometryKey="Cylinder" followPointer modeProps={modeProps} {...p} />;
+}
+
+function Cube({ modeProps, ...p }) {
+  return <ModeWrapper glb="/assets/3d/cube.glb" geometryKey="Cube" followPointer modeProps={modeProps} {...p} />;
+}
+
+function Bar({ modeProps = {}, ...p }) {
+  const defaultMat = {
+    transmission: 1,
+    roughness: 0,
+    thickness: 10,
+    ior: 1.15,
+    color: '#ffffff',
+    attenuationColor: '#ffffff',
+    attenuationDistance: 0.25
+  };
+
+  return (
+    <ModeWrapper
+      glb="/assets/3d/bar.glb"
+      geometryKey="Cube"
+      lockToBottom
+      followPointer={false}
+      modeProps={{ ...defaultMat, ...modeProps }}
+      {...p}
+    />
   );
 }

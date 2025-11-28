@@ -3,6 +3,7 @@ import { Fraunces, JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import FluidGlass from "../components/FluidGlass";
+import CursorWrapper from "../components/CursorWrapper";
 
 // 1. Configuración de Fraunces
 const fraunces = Fraunces({
@@ -43,25 +44,9 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${monument.variable} ${fraunces.variable} ${jetbrains.variable}`}>
       <body className="bg-vor-black text-vor-white antialiased">
+        <main>{children}</main>
+
         
-        {/* 1. Aquí se renderiza tu página (Hero, Textos, etc) */}
-        <main>
-            {children} 
-        </main>
-
-        {/* 2. El cursor fluido va encima de todo */}
-        <div style={{ height: '600px', position: 'relative' }}>
-          <FluidGlass 
-             lensProps={{
-                scale: 0.3,          // Hazlo más pequeño o grande
-                ior: 1.5,            // Más distorsión (tipo lupa fuerte)
-                thickness: 2,        // Más delgado
-                chromaticAberration: 0.2, // Más efecto arcoíris
-                color: "#ffffff"     // O cámbiale el tinte
-             }} 
-          />
-        </div>
-
       </body>
     </html>
   );

@@ -67,7 +67,7 @@ const Hero = () => {
 
   return (
     <div
-      className="flex w-full h-full min-h-screen justify-center items-center bg-[#004F3B] overflow-hidden"
+      className="flex w-full h-full min-h-screen justify-center items-center bg-[#f54a00] overflow-hidden"
       ref={scope}
     >
         <div style={{ height: '600px', position: 'relative' }}>
@@ -81,24 +81,24 @@ const Hero = () => {
       >
         <p className="text-5xl md:text-[145px] z-50 text-white font-serif" style={{ 
               fontFamily: 'var(--font-fraunces)', 
-              fontStyle: 'italic', 
+              
               fontWeight: 300 // Fraunces se ve mejor delgada (Light)
             }}>
-          After 
+          Uruapan 
           <br />
-          Hours.
+          specialty
         </p>
         
 
-  <div className="absolute bottom-0 left-0 w-full z-10 pb-6 md:pb-12 text-center pointer-events-none">
+  <div className=" bottom-0 left-0 w-full z-10 pb-6 md:pb-12 text-center pointer-events-none">
     <p 
-      className="text-5xl md:text-[4vw] leading-none text-white"
+      className="text-5xl md:text-[2vw] leading-none text-white pt-10"
       style={{ 
         fontFamily: 'var(--font-monument)', 
         fontWeight: 800 
       }}
     >
-      Decaf Blend
+      Specialty blend
     </p>
   </div>
       </motion.div>
