@@ -10,7 +10,7 @@ export default function Home() {
       <main className="">
         <Header/>
         <Hero/>
-        <div className="p-20 bg-black">
+        <div>
           <FeaturedGrid />
         </div>
        

@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect } from "react"
-import { motion, stagger, useAnimate } from "motion/react"
+import { useState, useRef, useEffect } from "react"
+import { motion, stagger, useAnimate, useMotionValue, useSpring } from "motion/react"
+import Image from "next/image"
+import { FloatingElement } from "@/components/ui/parallax-floating"
+import Floating from "@/components/ui/parallax-floating"
 
-import Floating, {
-  FloatingElement,
-} from "@/components/ui/parallax-floating"
 
 const exampleImages = [
   {
@@ -27,31 +27,31 @@ const exampleImages = [
     title: "A blurry photo of a crowd of people",
   },
   {
-    url: "https://images.unsplash.com/photo-1562016600-ece13e8ba570?q=80&w=2838&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    url: "https://deathtostock.imgix.net/000/012/279/small/DTS_GREASY__Franco_Dupuy_12279.jpg.jpg?ixlib=js-3.8.0&q=75&s=32e513693435fa1c46b3e0216d052601",
     link: "https://unsplash.com/photos/rippling-crystal-blue-water-9-OCsKoyQlk",
     author: "Wesley Tingey",
     title: "Rippling Crystal Blue Water",
   },
   {
-    url: "https://images.unsplash.com/photo-1624344965199-ed40391d20f2?q=80&w=2960&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    link: "https://unsplash.com/de/fotos/mann-im-schwarzen-hemd-unter-blauem-himmel-m8RDNiuEXro",
+    url: "https://deathtostock.imgix.net/000/008/370/large/final_dts-bad-taste_14.jpg?ixlib=js-3.8.0&q=50&s=9a2a26d40ec52d9f5746975674d5c409",
+    link: "https://deathtostock.imgix.net/000/008/370/large/final_dts-bad-taste_14.jpg?ixlib=js-3.8.0&q=50&s=9a2a26d40ec52d9f5746975674d5c409",
     author: "Serhii Tyaglovsky",
     title: "Mann im schwarzen Hemd unter blauem Himmel",
   },
   {
-    url: "https://images.unsplash.com/photo-1689553079282-45df1b35741b?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    link: "https://unsplash.com/photos/a-woman-with-a-flower-crown-on-her-head-0S3muIttbsY",
+    url: "https://deathtostock.imgix.net/000/012/451/small/DTS_SNOWBOUND_Daniel_Faro_12451.jpg.jpg?ixlib=js-3.8.0&q=75&s=f333a5aaf0638f3c306c819850517d4b",
+    link: "https://deathtostock.imgix.net/000/012/451/small/DTS_SNOWBOUND_Daniel_Faro_12451.jpg.jpg?ixlib=js-3.8.0&q=75&s=f333a5aaf0638f3c306c819850517d4b",
     author: "Vladimir Yelizarov",
     title: "A women with a flower crown on her head",
   },
   {
-    url: "https://images.unsplash.com/photo-1721968317938-cf8c60fccd1a?q=80&w=2728&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    url: "https://deathtostock.imgix.net/000/012/255/small/DTS_GREASY__Franco_Dupuy_12255.jpg.jpg?ixlib=js-3.8.0&q=75&s=553e291bc87bbb7af91ab766b250a1c9",
     title: "A blurry photo of white flowers in a field",
     author: "Eugene Golovesov",
     link: "https://unsplash.com/photos/a-blurry-photo-of-white-flowers-in-a-field-6qbx0lzGPyc",
   },
   {
-    url: "https://images.unsplash.com/photo-1677338354108-223e807fb1bd?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    url: "https://deathtostock.imgix.net/000/006/643/small/DTS_Daniel-Faro_On-The_Job_61.jpg?ixlib=js-3.8.0&q=75&s=f1f43691c1d17d36f73f465ed0fd1cb1",
     author: "Mathilde Langevin",
     link: "https://unsplash.com/photos/a-table-topped-with-two-wine-glasses-and-plates-Ig0gRAHspV0",
     title: "A table topped with two wine glasses and plates",
@@ -65,9 +65,31 @@ const Hero = () => {
     animate("img", { opacity: [0, 1] }, { duration: 0.5, delay: stagger(0.15) })
   }, [])
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isHovering, setIsHovering] = useState(false)
+
+  // --- MOTOR DEL CURSOR ---
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+
+  // Físicas para que el movimiento sea suave (como goma)
+  const springConfig = { damping: 20, stiffness: 300, mass: 0.5 }
+  const cursorX = useSpring(mouseX, springConfig)
+  const cursorY = useSpring(mouseY, springConfig)
+
+  // Función que actualiza la posición
+  const handleMouseMove = (e: React.MouseEvent) => {
+    // Restamos 48px (mitad de w-24) para centrar el círculo en la punta del mouse
+    mouseX.set(e.clientX - 48)
+    mouseY.set(e.clientY - 48)
+  }
+
+  
+
   return (
+    
     <div
-      className="flex w-full h-full min-h-screen justify-center items-center bg-[#f54a00] overflow-hidden"
+      className="flex w-full h-full min-h-screen justify-center items-center bg-[#FDBB00] overflow-hidden"
       ref={scope}
     >
         <div style={{ height: '600px', position: 'relative' }}>
@@ -84,9 +106,8 @@ const Hero = () => {
               
               fontWeight: 300 // Fraunces se ve mejor delgada (Light)
             }}>
-          Uruapan 
-          <br />
-          specialty
+          Daylight 
+
         </p>
         
 
@@ -98,7 +119,7 @@ const Hero = () => {
         fontWeight: 800 
       }}
     >
-      Specialty blend
+      Essential blend
     </p>
   </div>
       </motion.div>

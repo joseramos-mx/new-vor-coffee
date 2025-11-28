@@ -11,7 +11,7 @@ export default async function FeaturedGrid() {
     // - Quitamos 'w-screen h-screen'
     // - Ponemos 'w-full' y una altura controlada 'h-[70vh] min-h-[600px]'
     // - 'border-y' para un look más "sección editorial"
-    <section className="relative w-full h-[70vh] min-h-[800px] bg-vor-black overflow-hidden border-y border-white/10">
+    <section className="relative w-full h-screen min-h-screen p-20 bg-black overflow-hidden border-y border-white/10">
       
       {/* HEADER FLOTANTE */}
       <div className="absolute top-0 left-0 w-full z-20 p-6 flex justify-between items-start pointer-events-none mix-blend-difference text-white">
