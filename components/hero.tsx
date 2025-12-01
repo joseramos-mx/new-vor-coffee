@@ -5,6 +5,7 @@ import { motion, stagger, useAnimate, useMotionValue, useSpring } from "motion/r
 import Image from "next/image"
 import { FloatingElement } from "@/components/ui/parallax-floating"
 import Floating from "@/components/ui/parallax-floating"
+import Link from "next/link"
 
 
 const exampleImages = [
@@ -92,17 +93,19 @@ const Hero = () => {
       className="flex w-full h-full min-h-screen justify-center items-center bg-[#FDBB00] overflow-hidden"
       ref={scope}
     >
+
         <div style={{ height: '600px', position: 'relative' }}>
+          
 
 </div>
       <motion.div
-        className="z-50 text-center space-y-4 items-center flex flex-col"
+        className="z-40 text-center space-y-4 items-center flex flex-col"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.88, delay: 1.5 }}
       >
         <p className="text-5xl md:text-[145px] z-50 text-white font-serif" style={{ 
-              fontFamily: 'var(--font-fraunces)', 
+              fontFamily: '"var(--font-fraunces)"', 
               
               fontWeight: 300 // Fraunces se ve mejor delgada (Light)
             }}>
@@ -113,7 +116,7 @@ const Hero = () => {
 
   <div className=" bottom-0 left-0 w-full z-10 pb-6 md:pb-12 text-center pointer-events-none">
     <p 
-      className="text-5xl md:text-[2vw] leading-none text-white pt-10"
+      className="text-2xl md:text-[2vw] leading-none text-white pt-4 md:pt-10"
       style={{ 
         fontFamily: 'var(--font-monument)', 
         fontWeight: 800 
@@ -121,6 +124,29 @@ const Hero = () => {
     >
       Essential blend
     </p>
+    <Link 
+  href="/products/vor-daylight"
+  // 2. Aplicamos las clases al Link directamente
+  className="
+   pointer-events-auto
+    inline-block 
+    mt-2 md:mt-10 
+    px-6 md:px-12 
+    py-3 md:py-4 
+    bg-white 
+    text-black 
+    hover:bg-gray-200 
+    transition-colors 
+    text-sm md:text-base 
+    uppercase 
+    tracking-widest 
+    rounded-full
+    z-[999]
+  "
+  style={{ fontFamily: "var(--font-jetbrains)" }}
+>
+  Comprar ahora
+</Link>
   </div>
       </motion.div>
 
@@ -184,6 +210,7 @@ const Hero = () => {
           />
         </FloatingElement>
       </Floating>
+      
     </div>
   )
 }

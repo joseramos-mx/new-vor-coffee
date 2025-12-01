@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Fraunces, JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import FluidGlass from "../components/FluidGlass";
-import CursorWrapper from "../components/CursorWrapper";
+import Header from "../components/header";
+import { CartProvider } from "./context/CartContext";
+import CartDrawer from "../components/CartDrawer";
 
 // 1. Configuración de Fraunces
 const fraunces = Fraunces({
@@ -43,8 +44,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${monument.variable} ${fraunces.variable} ${jetbrains.variable}`}>
-      <body className="bg-vor-black text-vor-white antialiased">
-        <main>{children}</main>
+      <body className="text-vor-white antialiased bg-black">
+          <CartProvider>
+            
+            <Header />
+            <CartDrawer /> {/* 4. El Drawer vive aquí, disponible siempre */}
+            
+            <main>{children}</main>
+
+            {/* Cursor Wrapper... */}
+            
+        </CartProvider>
 
         
       </body>

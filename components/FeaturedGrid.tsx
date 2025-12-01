@@ -7,18 +7,14 @@ export default async function FeaturedGrid() {
   const featuredThree = products.slice(0, 3);
 
   return (
-    // CAMBIO AQUÍ:
-    // - Quitamos 'w-screen h-screen'
-    // - Ponemos 'w-full' y una altura controlada 'h-[70vh] min-h-[600px]'
-    // - 'border-y' para un look más "sección editorial"
     <section className="relative w-full h-screen min-h-screen p-20 bg-black overflow-hidden border-y border-white/10">
       
       {/* HEADER FLOTANTE */}
-      <div className="absolute top-0 left-0 w-full z-20 p-6 flex justify-between items-start pointer-events-none mix-blend-difference text-white">
-        <h2 className="font-display text-2xl uppercase tracking-tighter">
+      <div className="absolute top-0 left-0 w-full z-20 p-6 flex justify-center items-center flex-col md:flex-row md:justify-between pointer-events-none mix-blend-difference text-white md:pl-62">
+        <h2 className="font-display text-2xl uppercase tracking-tighter" style={{fontFamily:"var(--font-jetbrains)"}}>
           Featured
         </h2>
-        <span className="font-mono text-xs">
+        <span className="font-mono text-xs pt-0 md:pt-0 md:pr-35" style={{fontFamily:'var(--font-jetbrains)'}}>
           [ Selected / 001-003 ]
         </span>
       </div>
